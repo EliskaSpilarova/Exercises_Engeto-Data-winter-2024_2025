@@ -138,4 +138,41 @@ FROM czechia_region cr
 CROSS JOIN czechia_region cr2
 WHERE cr.code != cr2.code;
 
+-- Cvičení: Common Table Expression
+WITH high_price AS (
+    SELECT category_code AS code
+    FROM czechia_price
+    WHERE value > 150
+)
+SELECT DISTINCT cpc.name
+FROM high_price hp
+JOIN czechia_price_category cpc
+    ON hp.code = cpc.code;
 
+-- Úkol 2: Zjistěte, ve kterých okresech mají všichni praktičtí lékaři vyplněný telefon, fax, nebo e-mail. 
+-- Pro tyto účely si připravte dočasnou tabulku s výčtem okresů, ve kterých tato podmínka naopak splněna není, pod názvem not_completed_provider_info_district.
+WITH not_completed_provider_info_district AS (
+    SELECT DISTINCT district_code
+    FROM healthcare_provider
+    WHERE 
+        phone IS NULL 
+        AND email IS NULL 
+        AND fax IS NULL 
+        AND provider_type = 'Samost. ordinace všeob. prakt. lékaře'
+)
+SELECT *
+FROM czechia_district
+WHERE code NOT IN (
+    SELECT *
+    FROM not_completed_provider_info_district
+);
+
+-- Úkol 3: Vypište z tabulky economies průměr světových daní, při HDP vyšším než 70 miliard.
+WITH large_gdp_area AS (
+    SELECT *
+    FROM economies
+    WHERE GDP > 70000000000
+)
+SELECT
+    round(avg(taxes)::numeric, 2) AS taxes_average
+FROM large_gdp_area;
